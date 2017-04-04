@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEngine.SceneManagement;
+
 
 [RequireComponent(typeof(AudioSource))]
 public class AudioSourceGetSpectrumDataExample : MonoBehaviour
@@ -17,9 +19,10 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     const int SAMPLE_NUMBER = 256; //配列のサイズ
 
-    [SerializeField]
-    float m_threshold = 0.04f; //ピッチとして検出する最小の分布
+    float m_thresholdFreq = 0.04f; //ピッチとして検出する最小の分布
 
+    float m_thresholdVolume = 0.02f; // ボリューム検出の際の閾値
+    
     float[] m_spectrum; //FFTされたデータ
 
     float m_fSample; //サンプリング周波数
@@ -28,7 +31,7 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     const float PITCH_MAX = 460;
 
-    const float SEC_REQUIER = 1f;
+    const float SEC_REQUIER = 0.25f;
 
     const float TARGET_FREQ = 910f;
 
@@ -46,10 +49,23 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
     [SerializeField]
     Text debugText;
 
-    
+    [SerializeField]
+    Text modeButtonText;
+
+
+    enum CheckMode
+    {
+        Freq,
+        Volume,
+    }
+    CheckMode m_checkMode = CheckMode.Freq;
 
     void Start()
     {
+
+        SetMode(CheckMode.Volume);
+
+
         mamiSmile.SetActive(false);
         okText.SetActive(false);
         mamiNormal.transform.localScale = Vector3.zero;
@@ -88,7 +104,18 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
         float pitch = AnalyzeSound();
 
-        //bool isOverTh = IsPitchOverThreshold(TARGET_FREQ);
+        bool checkOk = false;
+
+        switch (m_checkMode)
+        {
+            case CheckMode.Freq:
+                checkOk = PITCH_MIN < pitch && pitch < PITCH_MAX;
+                break;
+            default:
+                //いんちき
+                checkOk = IsPitchOverThreshold(TARGET_FREQ);
+                break;
+        }
 
         //float volume = GetAveragedVolume();
 
@@ -100,8 +127,8 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         debugText.text = str;
 
 
-       if (PITCH_MIN< pitch && pitch < PITCH_MAX)
-       //if(isOverTh)
+
+       if (checkOk)
        {
                 count += Time.deltaTime;
 
@@ -157,7 +184,7 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         //最大値（ピッチ）を見つける。ただし、閾値は超えている必要がある
         for (int i = 0; i < SAMPLE_NUMBER; i++)
         {
-            if (m_spectrum[i] > maxV && m_spectrum[i] > m_threshold)
+            if (m_spectrum[i] > maxV && m_spectrum[i] > m_thresholdFreq)
             {
                 maxV = m_spectrum[i];
                 maxN = i;
@@ -182,7 +209,7 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         m_micIn.GetSpectrumData(m_spectrum, 0, FFTWindow.BlackmanHarris);
         int sampleNumber = (int)(freq * SAMPLE_NUMBER * 2 / m_fSample);
 
-        if(m_threshold < m_spectrum[sampleNumber])
+        if(m_thresholdVolume < m_spectrum[sampleNumber])
         {
             return true;
         }
@@ -211,6 +238,41 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         count = 0;
     }
 
+
+    public void OnHomePressed()
+    {
+        SceneManager.LoadScene("Main");
+    }
+
+    //評価モード切替
+    public void OnModePressed()
+    {
+        if(m_checkMode == CheckMode.Freq)
+        {
+            SetMode(CheckMode.Volume);
+        }
+        else
+        {
+            SetMode(CheckMode.Freq);
+        }
+
+    }
+
+    void SetMode(CheckMode mode)
+    {
+        switch (mode)
+        {
+            case CheckMode.Freq:
+                m_checkMode = CheckMode.Freq;
+                modeButtonText.text = "F";
+                break;
+            case CheckMode.Volume:
+                m_checkMode = CheckMode.Volume;
+                modeButtonText.text = "V";
+                break;
+        }
+
+    }
 
     void DrawLine(Vector3 startPos, Vector3 endPos, Color color)
     {
