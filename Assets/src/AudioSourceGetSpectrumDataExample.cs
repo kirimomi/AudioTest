@@ -31,7 +31,7 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     const float PITCH_MAX = 260;
 
-    const float SEC_REQUIER = 0.35f;
+    const float SEC_REQUIER = 0.4f;
 
     const float TARGET_FREQ = 910f;
 
@@ -148,8 +148,11 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
        if (checkOk)
        {
             count += Time.deltaTime;
-            m_charaNormal.SetActive(false);
-            m_charaVacuum.SetActive(true);
+            if (!m_charaOk.activeSelf)
+            {
+                m_charaNormal.SetActive(false);
+                m_charaVacuum.SetActive(true);
+            }
 
         }else
         {
@@ -158,8 +161,11 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
             {
                 count = 0;
             }
-            m_charaNormal.SetActive(true);
-            m_charaVacuum.SetActive(false);
+            if (!m_charaOk.activeSelf)
+            {
+                m_charaNormal.SetActive(true);
+                m_charaVacuum.SetActive(false);
+            }
 
         }
 
