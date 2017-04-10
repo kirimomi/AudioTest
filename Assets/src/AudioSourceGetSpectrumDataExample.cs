@@ -27,21 +27,32 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     float m_fSample; //サンプリング周波数
 
-    const float PITCH_MIN = 445f;
+    const float PITCH_MIN = 240f;
 
-    const float PITCH_MAX = 460;
+    const float PITCH_MAX = 260;
 
-    const float SEC_REQUIER = 0.25f;
+    const float SEC_REQUIER = 0.35f;
 
     const float TARGET_FREQ = 910f;
+
+
+    const float CHARA_SCALE_MAX = 1.0f;
+    const float CHARA_SCALE_MIN = 0.7f;
 
     float count = 0;
 
     [SerializeField]
-    GameObject mamiNormal;
+    GameObject m_charaRoot;
 
     [SerializeField]
-    GameObject mamiSmile;
+    GameObject m_charaNormal;
+
+    [SerializeField]
+    GameObject m_charaVacuum;
+
+    [SerializeField]
+    GameObject m_charaOk;
+
 
     [SerializeField]
     GameObject okText;
@@ -63,28 +74,34 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
     void Start()
     {
 
-        SetMode(CheckMode.Volume);
+        //SetMode(CheckMode.Volume);
+        SetMode(CheckMode.Freq);
 
-
-        mamiSmile.SetActive(false);
-        okText.SetActive(false);
-        mamiNormal.transform.localScale = Vector3.zero;
+        InitScene();
 
         m_spectrum = new float[SAMPLE_NUMBER];
 
         // 空の Audio Sourceを取得
         //m_audioSource = GetComponent<AudioSource>();
 
+        /*
         int minFreq;
         int maxFreq;
-        Microphone.GetDeviceCaps(null, out minFreq, out maxFreq);
+        //Microphone.GetDeviceCaps(null, out minFreq, out maxFreq);
         Debug.Log("minFreq:" + minFreq + "  maxFreq:" + maxFreq);
         debugText.text = "minFreq:" + minFreq + "  maxFreq:" + maxFreq;
-        m_fSample = (float)maxFreq;
+        */
+
+        int freq = 24000;
+
+        m_fSample = (float)freq;
+
+
+
 
         // Audio Source の Audio Clip をマイク入力に設定
         // 引数は、デバイス名（null ならデフォルト）、ループ、何秒取るか、サンプリング周波数
-        m_micIn.clip = Microphone.Start(null, true, 10, maxFreq);
+        m_micIn.clip = Microphone.Start(null, true, 10, freq);
         
         //audio_.loop = true;
 
@@ -130,7 +147,9 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
        if (checkOk)
        {
-                count += Time.deltaTime;
+            count += Time.deltaTime;
+            m_charaNormal.SetActive(false);
+            m_charaVacuum.SetActive(true);
 
         }else
         {
@@ -139,21 +158,29 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
             {
                 count = 0;
             }
+            m_charaNormal.SetActive(true);
+            m_charaVacuum.SetActive(false);
+
         }
 
-        float scale = count / SEC_REQUIER;
-        mamiNormal.transform.localScale = Vector3.one * scale;
+        float scale = CHARA_SCALE_MIN +  count * (CHARA_SCALE_MAX - CHARA_SCALE_MIN) / SEC_REQUIER;
+        if (m_charaOk.activeSelf)
+        {
+            scale = CHARA_SCALE_MAX;
+        }
+        m_charaRoot.transform.localScale = Vector3.one * scale;
 
 
         if (SEC_REQUIER < count)
         {
-            mamiNormal.SetActive(false);
+            m_charaNormal.SetActive(false);
+            m_charaVacuum.SetActive(false);
 
-            if (!mamiSmile.activeSelf)
+            if (!m_charaOk.activeSelf)
             {
                 m_SE.Play();
             }
-            mamiSmile.SetActive(true);
+            m_charaOk.SetActive(true);
             okText.SetActive(true);
         }
 
@@ -229,13 +256,21 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
     }
 
 
+    void InitScene()
+    {
+        m_charaNormal.SetActive(true);
+        m_charaVacuum.SetActive(false);
+        m_charaOk.SetActive(false);
+        m_charaRoot.transform.localScale = Vector3.one * CHARA_SCALE_MIN;
+
+        okText.SetActive(false);
+
+        count = 0;
+    }
+
     public void OnButtonPressed()
     {
-        mamiSmile.SetActive(false);
-        okText.SetActive(false);
-        mamiNormal.SetActive(true);
-        mamiNormal.transform.localScale = Vector3.zero;
-        count = 0;
+        InitScene();
     }
 
 
@@ -289,3 +324,4 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     
 }
+ 
