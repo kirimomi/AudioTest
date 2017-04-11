@@ -17,13 +17,17 @@ public class Instruction : MonoBehaviour {
 
     public void OnButton1Pressed()
     {
+#if (UNITY_IOS || UNITY_ANDROID)
         Handheld.PlayFullScreenMovie("mov1.mp4", Color.black, FullScreenMovieControlMode.Full);
+#endif
 
     }
 
     public void OnButton2Pressed()
     {
+#if (UNITY_IOS || UNITY_ANDROID)
         Handheld.PlayFullScreenMovie("mov2.mp4", Color.black, FullScreenMovieControlMode.Full);
+#endif
     }
 
     public void OnHomePressed()
