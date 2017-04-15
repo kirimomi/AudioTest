@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Assertions;
 using System.Linq;
 using UnityEngine.SceneManagement;
 
 
-[RequireComponent(typeof(AudioSource))]
 public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 {
 
@@ -17,23 +17,91 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
     AudioSource m_SE;
 
 
-    const int SAMPLE_NUMBER = 256; //配列のサイズ
+    const int SAMPLE_NUMBER = 128; //配列のサイズ
 
     float m_thresholdFreq = 0.04f; //ピッチとして検出する最小の分布
 
     float m_thresholdVolume = 0.02f; // ボリューム検出の際の閾値
     
-    float[] m_spectrum; //FFTされたデータ
+    public float[] Spectrum; //FFTされたデータ
 
     float m_fSample; //サンプリング周波数
 
-    const float PITCH_MIN = 240f;
+    struct EvaluationRange
+    {
+        public float min;
+        public float max;
+    }
 
-    const float PITCH_MAX = 260;
+    const int RANGE_MAX = 10;
+
+    float m_time = 0;
+
+    EvaluationRange GetEvaluationRange(int range)
+    {
+        Assert.IsTrue(0 <= range && range < RANGE_MAX);
+
+        EvaluationRange ret = new EvaluationRange();
+        switch (range)
+        {
+            case 0:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 1:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 2:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 3:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 4:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 5:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 6:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 7:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 8:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            case 9:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+            default:
+                ret.min = 450f;
+                ret.max = 550f;
+                break;
+        }
+
+        return ret;
+
+    }
+
+
+    const float PITCH_MIN = 440f;
+
+    const float PITCH_MAX = 460f;
 
     const float SEC_REQUIER = 0.4f;
 
-    const float TARGET_FREQ = 910f;
+    const float TARGET_FREQ = 450f;
 
 
     const float CHARA_SCALE_MAX = 1.0f;
@@ -69,7 +137,7 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         Freq,
         Volume,
     }
-    CheckMode m_checkMode = CheckMode.Freq;
+    CheckMode m_checkMode = CheckMode.Volume;
 
     void Start()
     {
@@ -79,36 +147,32 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
         InitScene();
 
-        m_spectrum = new float[SAMPLE_NUMBER];
+        Spectrum = new float[SAMPLE_NUMBER];
 
         // 空の Audio Sourceを取得
         //m_audioSource = GetComponent<AudioSource>();
 
-        /*
         int minFreq;
         int maxFreq;
-        //Microphone.GetDeviceCaps(null, out minFreq, out maxFreq);
+        Microphone.GetDeviceCaps(null, out minFreq, out maxFreq);
         Debug.Log("minFreq:" + minFreq + "  maxFreq:" + maxFreq);
         debugText.text = "minFreq:" + minFreq + "  maxFreq:" + maxFreq;
-        */
 
-        int freq = 24000;
+        //maxFreq = 22050;
+        //maxFreq = 11025;
 
-        m_fSample = (float)freq;
+        m_fSample = (float)maxFreq;
 
 
 
 
         // Audio Source の Audio Clip をマイク入力に設定
         // 引数は、デバイス名（null ならデフォルト）、ループ、何秒取るか、サンプリング周波数
-        m_micIn.clip = Microphone.Start(null, true, 10, freq);
-        
-        //audio_.loop = true;
-
-        //audio.mute = true;
+        m_micIn.clip = Microphone.Start(null, true, 1, maxFreq);
         
         // マイクが Ready になるまで待機（一瞬）
         while (Microphone.GetPosition(null) <= 0) { }
+
         // 再生開始（録った先から再生、スピーカーから出力するとハウリングします）
         m_micIn.Play();
     }
@@ -117,7 +181,8 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
     void Update()
     {
 
-        m_micIn.GetSpectrumData(m_spectrum, 0, FFTWindow.BlackmanHarris);
+        //m_micIn.GetSpectrumData(Spectrum, 0, FFTWindow.BlackmanHarris);
+        m_micIn.GetSpectrumData(Spectrum, 0, FFTWindow.Rectangular);
 
         float pitch = AnalyzeSound();
 
@@ -126,7 +191,14 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         switch (m_checkMode)
         {
             case CheckMode.Freq:
-                checkOk = PITCH_MIN < pitch && pitch < PITCH_MAX;
+                for(int i = 0; i < RANGE_MAX; i++)
+                {
+                    if (GetEvaluationRange(i).min < pitch && pitch < GetEvaluationRange(i).max)
+                    {
+                        checkOk = true;
+                        break;
+                    }
+                }
                 break;
             default:
                 //いんちき
@@ -194,15 +266,19 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
         //m_audioSource.GetSpectrumData(spectrum, 0, FFTWindow.BlackmanHarris);
 
-        for (int i = 0; i < m_spectrum.Length-1; i++)
+        for (int i = 0; i < Spectrum.Length-1; i++)
         {
-            Debug.DrawLine(new Vector3(i*0.1f , m_spectrum[i] + 10, 0), new Vector3((i+1) * 0.1f, m_spectrum[i + 1] + 10, 0), Color.red);
-            Debug.DrawLine(new Vector3(i * 0.1f, Mathf.Log(m_spectrum[i]) + 10, 2), new Vector3((i+1) * 0.1f, Mathf.Log(m_spectrum[i+1]) + 10, 2), Color.cyan);
-            Debug.DrawLine(new Vector3(Mathf.Log(i), m_spectrum[i] - 10, 1), new Vector3(Mathf.Log(i+1), m_spectrum[i+1] - 10, 1), Color.green);
-            Debug.DrawLine(new Vector3(Mathf.Log(i), Mathf.Log(m_spectrum[i]), 3), new Vector3(Mathf.Log(i+1), Mathf.Log(m_spectrum[i+1]), 3), Color.blue);
+            Debug.DrawLine(new Vector3(i*0.1f , Spectrum[i] + 10, 0), new Vector3((i+1) * 0.1f, Spectrum[i + 1] + 10, 0), Color.red);
+            Debug.DrawLine(new Vector3(i * 0.1f, Mathf.Log(Spectrum[i]) + 10, 2), new Vector3((i+1) * 0.1f, Mathf.Log(Spectrum[i+1]) + 10, 2), Color.cyan);
+            Debug.DrawLine(new Vector3(Mathf.Log(i), Spectrum[i] - 10, 1), new Vector3(Mathf.Log(i+1), Spectrum[i+1] - 10, 1), Color.green);
+            Debug.DrawLine(new Vector3(Mathf.Log(i), Mathf.Log(Spectrum[i]), 3), new Vector3(Mathf.Log(i+1), Mathf.Log(Spectrum[i+1]), 3), Color.blue);
 
 
         }
+
+
+        DrawLine2();
+
     }
 
 
@@ -217,9 +293,9 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         //最大値（ピッチ）を見つける。ただし、閾値は超えている必要がある
         for (int i = 0; i < SAMPLE_NUMBER; i++)
         {
-            if (m_spectrum[i] > maxV && m_spectrum[i] > m_thresholdFreq)
+            if (Spectrum[i] > maxV && Spectrum[i] > m_thresholdFreq)
             {
-                maxV = m_spectrum[i];
+                maxV = Spectrum[i];
                 maxN = i;
             }
         }
@@ -228,8 +304,8 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         if (maxN > 0 && maxN < SAMPLE_NUMBER - 1)
         {
             //隣のスペクトルも考慮する
-            float dL = m_spectrum[maxN - 1] / m_spectrum[maxN];
-            float dR = m_spectrum[maxN + 1] / m_spectrum[maxN];
+            float dL = Spectrum[maxN - 1] / Spectrum[maxN];
+            float dR = Spectrum[maxN + 1] / Spectrum[maxN];
             freqN += 0.5f * (dR * dR - dL * dL);
         }
         float pitchValue = freqN * (m_fSample / 2) / SAMPLE_NUMBER;
@@ -239,10 +315,10 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     bool IsPitchOverThreshold(float freq)
     {
-        m_micIn.GetSpectrumData(m_spectrum, 0, FFTWindow.BlackmanHarris);
+        m_micIn.GetSpectrumData(Spectrum, 0, FFTWindow.BlackmanHarris);
         int sampleNumber = (int)(freq * SAMPLE_NUMBER * 2 / m_fSample);
 
-        if(m_thresholdVolume < m_spectrum[sampleNumber])
+        if(m_thresholdVolume < Spectrum[sampleNumber])
         {
             return true;
         }
@@ -328,6 +404,61 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         lRend.SetPosition(1, endPos);
     }
 
-    
+    // When added to an object, draws colored rays from the
+    // transform position.
+    int m_lineCount = 100;
+    public float radius = 3.0f;
+
+
+    static Material lineMaterial;
+    static void CreateLineMaterial()
+    {
+        if (!lineMaterial)
+        {
+            // Unity has a built-in shader that is useful for drawing
+            // simple colored things.
+            Shader shader = Shader.Find("Hidden/Internal-Colored");
+            lineMaterial = new Material(shader);
+            lineMaterial.hideFlags = HideFlags.HideAndDontSave;
+            // Turn on alpha blending
+            lineMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            lineMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            // Turn backface culling off
+            lineMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+            // Turn off depth writes
+            lineMaterial.SetInt("_ZWrite", 0);
+        }
+    }
+
+    // Will be called after all regular rendering is done
+    public void DrawLine2()
+    {
+        GL.Clear(false, false, new Color(0, 0, 0, 0));
+
+        CreateLineMaterial();
+        // Apply the line material
+        lineMaterial.SetPass(0);
+
+        GL.PushMatrix();
+        // Set transformation matrix for drawing to
+        // match our transform
+        GL.MultMatrix(transform.localToWorldMatrix);
+
+        // Draw lines
+        GL.Begin(GL.LINES);
+        for (int i = 0; i < m_lineCount; ++i)
+        {
+            float a = i / (float)m_lineCount;
+            float angle = a * Mathf.PI * 2;
+            // Vertex colors change from red to green
+            GL.Color(new Color(a, 1 - a, 0, 0.8F));
+            // One vertex at transform position
+            GL.Vertex3(0, 0, 0);
+            // Another vertex at edge of circle
+            GL.Vertex3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
+        }
+        GL.End();
+        GL.PopMatrix();
+    }
 }
  
