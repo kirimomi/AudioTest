@@ -17,7 +17,7 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
     AudioSource m_SE;
 
 
-    const int SAMPLE_NUMBER = 128; //配列のサイズ
+    const int SAMPLE_NUMBER = 256; //配列のサイズ
 
     float m_thresholdFreq = 0.04f; //ピッチとして検出する最小の分布
 
@@ -45,44 +45,44 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
         switch (range)
         {
             case 0:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 430f;
+                ret.max = 450f;
                 break;
             case 1:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 880f;
+                ret.max = 940f;
                 break;
             case 2:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 1350f;
+                ret.max = 1390f;
                 break;
             case 3:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 1760f;
+                ret.max = 1840f;
                 break;
             case 4:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 2200f;
+                ret.max = 2260f;
                 break;
             case 5:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 2720f;
+                ret.max = 2760f;
                 break;
             case 6:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 430f;
+                ret.max = 450f;
                 break;
             case 7:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 430f;
+                ret.max = 450f;
                 break;
             case 8:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 430f;
+                ret.max = 450f;
                 break;
             case 9:
-                ret.min = 450f;
-                ret.max = 550f;
+                ret.min = 430f;
+                ret.max = 450f;
                 break;
             default:
                 ret.min = 450f;
@@ -210,9 +210,13 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
         //string str = pitch + "Hz" + (isOverTh ? "○" : "") + "\nvolume:" + volume;
         //string str = pitch + "Hz"  + "\nvolume:" + volume;
-        string str = pitch + "Hz" + "\nsample:" + m_fSample;
+        //string str = pitch + "Hz" + "\nsample:" + m_fSample;
+        string str = pitch + "Hz";
 
-        Debug.Log(str);
+        if (0 < pitch)
+        {
+            Debug.Log(str);
+        }
         debugText.text = str;
 
 
@@ -275,9 +279,6 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
 
         }
-
-
-        DrawLine2();
 
     }
 
@@ -391,74 +392,5 @@ public class AudioSourceGetSpectrumDataExample : MonoBehaviour
 
     }
 
-    void DrawLine(Vector3 startPos, Vector3 endPos, Color color)
-    {
-        GameObject newLine = new GameObject("Line");
-        LineRenderer lRend = newLine.AddComponent<LineRenderer>();
-        lRend.positionCount = 2;
-        lRend.startWidth = 0.03f;
-        lRend.endWidth = 0.03f;
-        lRend.startColor = color;
-        lRend.endColor = color;
-        lRend.SetPosition(0, startPos);
-        lRend.SetPosition(1, endPos);
-    }
-
-    // When added to an object, draws colored rays from the
-    // transform position.
-    int m_lineCount = 100;
-    public float radius = 3.0f;
-
-
-    static Material lineMaterial;
-    static void CreateLineMaterial()
-    {
-        if (!lineMaterial)
-        {
-            // Unity has a built-in shader that is useful for drawing
-            // simple colored things.
-            Shader shader = Shader.Find("Hidden/Internal-Colored");
-            lineMaterial = new Material(shader);
-            lineMaterial.hideFlags = HideFlags.HideAndDontSave;
-            // Turn on alpha blending
-            lineMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            lineMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            // Turn backface culling off
-            lineMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
-            // Turn off depth writes
-            lineMaterial.SetInt("_ZWrite", 0);
-        }
-    }
-
-    // Will be called after all regular rendering is done
-    public void DrawLine2()
-    {
-        GL.Clear(false, false, new Color(0, 0, 0, 0));
-
-        CreateLineMaterial();
-        // Apply the line material
-        lineMaterial.SetPass(0);
-
-        GL.PushMatrix();
-        // Set transformation matrix for drawing to
-        // match our transform
-        GL.MultMatrix(transform.localToWorldMatrix);
-
-        // Draw lines
-        GL.Begin(GL.LINES);
-        for (int i = 0; i < m_lineCount; ++i)
-        {
-            float a = i / (float)m_lineCount;
-            float angle = a * Mathf.PI * 2;
-            // Vertex colors change from red to green
-            GL.Color(new Color(a, 1 - a, 0, 0.8F));
-            // One vertex at transform position
-            GL.Vertex3(0, 0, 0);
-            // Another vertex at edge of circle
-            GL.Vertex3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
-        }
-        GL.End();
-        GL.PopMatrix();
-    }
 }
  

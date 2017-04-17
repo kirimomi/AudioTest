@@ -2,10 +2,6 @@
 
 public class LineTest : MonoBehaviour
 {
-    // When added to an object, draws colored rays from the
-    // transform position.
-    int m_lineCount = 1;
-    float radius = 3.0f;
 
     [SerializeField]
     GameObject m_main;
@@ -19,7 +15,6 @@ public class LineTest : MonoBehaviour
 
     void Update()
     {
-        m_lineCount += 1;
         for (int i = 0; i < m_asgstde.Spectrum.Length - 1; i++)
         {
             Debug.DrawLine(new Vector3(i * 0.1f, Mathf.Log(m_asgstde.Spectrum[i]) + 10, 2), new Vector3((i + 1) * 0.1f, Mathf.Log(m_asgstde.Spectrum[i + 1]) + 10, 2), Color.cyan);
@@ -63,33 +58,21 @@ public class LineTest : MonoBehaviour
         // Draw lines
         GL.Begin(GL.LINES);
 
-        const float SCALE_X = 0.04f;
+        const float SCALE_X = 0.02f;
         const float SCALE_Y = 0.3f;
-        float OFFSET_X = -1f * SCALE_X * m_asgstde.Spectrum.Length / 2f ;
+        float offsetX = -1f * SCALE_X * m_asgstde.Spectrum.Length / 2f ;
 
         for (int i = 0; i < m_asgstde.Spectrum.Length - 1; i++)
         {
             GL.Color(Color.green);
 
-            GL.Vertex3(i * SCALE_X + OFFSET_X, Mathf.Log(m_asgstde.Spectrum[i]) * SCALE_Y, 0);
-            GL.Vertex3((i + 1) * SCALE_X + OFFSET_X, Mathf.Log(m_asgstde.Spectrum[i + 1]) * SCALE_Y, 0);
+            GL.Vertex3(i * SCALE_X + offsetX, Mathf.Log(m_asgstde.Spectrum[i]) * SCALE_Y, 0);
+            GL.Vertex3((i + 1) * SCALE_X + offsetX, Mathf.Log(m_asgstde.Spectrum[i + 1]) * SCALE_Y, 0);
 
             //Debug.DrawLine(new Vector3(i * 0.1f, Mathf.Log(m_asgstde.Spectrum[i]) + 10, 2), new Vector3((i + 1) * 0.1f, Mathf.Log(m_asgstde.Spectrum[i + 1]) + 10, 2), Color.cyan);
         }
 
 
-        /*
-        for (int i = 0; i < m_lineCount; ++i)
-        {
-            float a = i / (float)m_lineCount;
-            float angle = a * Mathf.PI * 2;
-            // Vertex colors change from red to green
-            GL.Color(new Color(a, 1 - a, 0, 0.8F));
-            // One vertex at transform position
-            GL.Vertex3(0, 0, 0);
-            // Another vertex at edge of circle
-            GL.Vertex3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
-        }*/
         GL.End();
         GL.PopMatrix();
     }
